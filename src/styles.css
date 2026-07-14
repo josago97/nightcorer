@@ -19,10 +19,10 @@ button {
 
 @font-face {
   font-family: 'Comic Mono';
-  src: url('/fonts/comic_mono/ComicMono.ttf') format('truetype');
+  src: url('fonts/comic_mono/ComicMono.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Info Story';
-  src: url('/fonts/info_story/InfoStory.otf') format('truetype');
+  src: url('fonts/info_story/InfoStory.otf') format('truetype');
 }
