@@ -50,9 +50,8 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ]
+            "styles": ["src/styles.css"],
+            "externalDependencies": ["fonts/*"]
           },
           "configurations": {
             "production": {
