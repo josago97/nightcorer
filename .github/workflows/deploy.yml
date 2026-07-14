@@ -30,14 +30,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v7
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
         with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install Angular CLI
-        run: npm install -g @angular/cli@22
+          version: 11
 
       - name: Install webpage pnpm packages
         run: pnpm install --frozen-lockfile
