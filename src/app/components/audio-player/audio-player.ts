@@ -1,16 +1,15 @@
-import { Component } from '@angular/core';
-import { AudioPlayerService } from '../../services/audio-player.service';
+import { Component, inject } from '@angular/core';
+import { AudioPlayerService } from '../../services/audio-player';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-audio-player',
   imports: [FormsModule],
-  templateUrl: './audio-player.component.html',
-  styleUrl: './audio-player.component.css'
+  templateUrl: './audio-player.html',
+  styleUrl: './audio-player.css',
 })
-export class AudioPlayerComponent {
-
-  constructor(protected player: AudioPlayerService) {}
+export class AudioPlayer {
+  protected readonly player = inject(AudioPlayerService);
 
   protected displayTime(time: number): string {
     if (time === null || time === undefined || isNaN(time) || time < 0) {

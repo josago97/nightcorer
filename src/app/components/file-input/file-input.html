@@ -1,13 +1,13 @@
 <label (dragenter)="onEnterDrag($event)" (dragleave)="onLeaveDrag($event)" (dragover)="onDragOver($event)"
   (drop)="onDropFile($event)">
   <div class="content">
-    @if (file) {
-    <div>
-      {{ file.name }}
-    </div>
+    @if (file(); as file) {
+      <div>
+        {{ file.name }}
+      </div>
     } @else {
-    <div class="title">Drag and drop a song here :3</div>
-    <div class="formats">MP3, WAV, AAC, OGG, FLAC...</div>
+      <div class="title">Drag and drop a song here :3</div>
+      <div class="formats">MP3, WAV, AAC, OGG, FLAC...</div>
     }
   </div>
   <input type="file" accept="audio/*" hidden (change)="importFile($event)" />

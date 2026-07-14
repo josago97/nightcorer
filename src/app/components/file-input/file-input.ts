@@ -1,32 +1,32 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, output, signal } from '@angular/core';
 
 @Component({
   selector: 'app-file-input',
   imports: [],
-  templateUrl: './file-input.component.html',
-  styleUrl: './file-input.component.css'
+  templateUrl: './file-input.html',
+  styleUrl: './file-input.css',
 })
-export class FileInputComponent {
+export class FileInput {
+  private readonly FAIL_DRAG_CLASS = 'fail-drag';
+  private readonly SUCCESS_DRAG_CLASS = 'success-drag';
 
-  readonly FAIL_DRAG_CLASS = 'fail-drag';
-  readonly SUCCESS_DRAG_CLASS = 'success-drag';
-
-  protected file: File;
-
-  @Output()
-  fileChanged = new EventEmitter<File>();
+  readonly file = signal<File | null>(null);
+  readonly fileChanged = output<File>();
 
   protected async importFile(event: Event) {
     const inputElement = event.target as HTMLInputElement;
-    const file = inputElement.files[0] as File;
-    this.changeFile(file);
+
+    if (inputElement?.files) {
+      const file = inputElement.files[0] as File;
+      this.changeFile(file);
+    }
   }
 
   protected onEnterDrag(event: DragEvent) {
     const element = event.target as HTMLElement;
-    const items = event.dataTransfer.items;
+    const items = event.dataTransfer?.items;
 
-    if (items.length > 0) {
+    if (items && items.length > 0) {
       const item = items[0];
 
       if (this.isAudio(item)) {
@@ -51,9 +51,9 @@ export class FileInputComponent {
     event.preventDefault();
     this.onLeaveDrag(event);
 
-    const files = event.dataTransfer.files;
+    const files = event.dataTransfer?.files;
 
-    if (files.length > 0) {
+    if (files && files.length > 0) {
       const file = files[0];
 
       if (this.isAudio(file)) {
@@ -63,8 +63,8 @@ export class FileInputComponent {
   }
 
   private changeFile(newFile: File) {
-    this.file = newFile;
-    this.fileChanged.emit(this.file);
+    this.file.set(newFile);
+    this.fileChanged.emit(newFile);
   }
 
   private isAudio(item: DataTransferItem | File) {

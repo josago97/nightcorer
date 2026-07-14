@@ -1,0 +1,20 @@
+<div class="player">
+  <div class="timebar">
+    <span>{{displayTime(player.currentTime())}}</span>
+    <input type="range" name="track" min="0" max="100" step="0.01" [ngModel]="player.percentagePlayed()"
+      (ngModelChange)="player.setPercentagePlayed($event)">
+    <span>{{displayTime(player.duration())}}</span>
+  </div>
+  <div class="controls">
+    <button (click)="player.playPause()">
+      @if (player.isPlaying()) {
+        <i class="fa-solid fa-pause"></i>
+      } @else {
+        <i class="fa-solid fa-play"></i>
+      }
+    </button>
+    <button [disabled]="!player.isPlaying()" (click)="player.stop()">
+      <i class="fa-solid fa-stop"></i>
+    </button>
+  </div>
+</div>
