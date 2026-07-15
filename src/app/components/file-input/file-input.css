@@ -42,3 +42,13 @@ label * {
 .formats {
  color: gray;
 }
+
+.file strong {
+  font-size: 1.15em;
+}
+
+.file small{
+  display: block;
+  margin-top: 8px;
+  color: #777;
+}

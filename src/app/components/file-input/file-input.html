@@ -2,8 +2,12 @@
   (drop)="onDropFile($event)">
   <div class="content">
     @if (file(); as file) {
-      <div>
-        {{ file.name }}
+      <div class="file">
+        <strong>🎵 {{ file.name }}</strong>
+
+        @if (player.originalDuration(); as originalDuration) {
+          <small>Original duration: {{ originalDuration | time }}</small>
+        }
       </div>
     } @else {
       <div class="title">Drag and drop a song here :3</div>

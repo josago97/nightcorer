@@ -1,4 +1,4 @@
-import { computed, effect, inject, NgZone, Service, signal } from '@angular/core';
+import { computed, inject, NgZone, Service, signal } from '@angular/core';
 import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
 import { Utils } from '../utils/utils';
 import { AudioEncoder } from '../models/audio-encoder';
@@ -9,7 +9,7 @@ export class AudioPlayerService {
 
   private readonly _isPlaying = signal(false);
   private readonly _originalDuration = signal(0);
-  private readonly _currentTime = signal(0);
+  private readonly _originalCurrentTime = signal(0);
   private readonly _semitones = signal(0);
   private readonly _speed = signal(1);
   private readonly _volume = signal(0.25);
@@ -21,15 +21,17 @@ export class AudioPlayerService {
   private audioSource: AudioBufferSourceNode | null = null;
   private gainNode: GainNode;
   private progressLoopRafId: number | null = null;
-  private startTime: number = 0;
+  private playStartTime: number = 0;
+  private pauseOffset: number = 0;
 
-  isPlaying = this._isPlaying.asReadonly();
-  currentTime = this._currentTime.asReadonly();
-  duration = computed(() => this._originalDuration() / this.speed());
-  percentagePlayed = computed(() => (this.duration() > 0 ? this._currentTime() / this.duration() * 100 : 0));
-  semitones = this._semitones.asReadonly();
-  speed = this._speed.asReadonly();
-  volume = this._volume.asReadonly();
+  readonly isPlaying = this._isPlaying.asReadonly();
+  readonly originalDuration = this._originalDuration.asReadonly();
+  readonly estimatedDuration = computed(() => this.originalDuration() / this.speed());
+  readonly estimatedCurrentTime = computed(() => this._originalCurrentTime() / this.speed());
+  readonly playerProgress = computed(() => (this.estimatedDuration() > 0 ? this.estimatedCurrentTime() / this.estimatedDuration() : 0));
+  readonly semitones = this._semitones.asReadonly();
+  readonly speed = this._speed.asReadonly();
+  readonly volume = this._volume.asReadonly();
 
   constructor() {
     this.audioContext = new AudioContext();
@@ -38,15 +40,6 @@ export class AudioPlayerService {
     this.gainNode = this.audioContext.createGain();
     this.gainNode.gain.value = this._volume();
     this.gainNode.connect(this.audioContext.destination);
-
-    effect(() => {
-      if (this._isPlaying()) {
-        this.stopProgressLoop();
-        this.startProgressLoop();
-      } else {
-        this.stopProgressLoop();
-      }
-    });
   }
 
   private registSoundtouchWorklet(audioContext: BaseAudioContext) {
@@ -54,10 +47,12 @@ export class AudioPlayerService {
       .catch(console.error);
   }
 
-  setPercentagePlayed(value: number) {
+  setPlayerProgress(value: number) {
+    value = Utils.clamp(value, 0, 1);
     const wasPlaying = this.isPlaying();
     this.pause();
-    this._currentTime.set(this.duration() * value / 100);
+    this.pauseOffset = this.originalDuration() * value;
+    this._originalCurrentTime.set(this.pauseOffset);
 
     if (wasPlaying) {
       this.play()
@@ -74,19 +69,27 @@ export class AudioPlayerService {
   }
 
   setSpeed(value: number) {
-    const clamped = Utils.clamp(value, 0.1, 8);
-    this._speed.set(clamped);
+    value = Utils.clamp(value, 0.1, 8);
+
+    if (this.isPlaying()) {
+      this.pauseOffset += (this.audioContext.currentTime - this.playStartTime) * this.speed();
+      this.pauseOffset = this.normalizeOffset(this.pauseOffset);
+      this.playStartTime = this.audioContext.currentTime;
+      this._originalCurrentTime.set(this.pauseOffset);
+    }
+
+    this._speed.set(value);
 
     if (this.audioSource && this.soundtouch) {
-      this.soundtouch.playbackRate.value = clamped;
-      this.audioSource.playbackRate.value = clamped;
+      this.soundtouch.playbackRate.value = value;
+      this.audioSource.playbackRate.value = value;
     }
   }
 
   setVolume(value: number) {
-    const clamped = Utils.clamp(value, 0, 1);
-    this._volume.set(clamped);
-    this.gainNode.gain.value = clamped;
+    value = Utils.clamp(value, 0, 1);
+    this._volume.set(value);
+    this.gainNode.gain.value = value;
   }
 
   async playAudio(audio: ArrayBuffer) {
@@ -100,7 +103,8 @@ export class AudioPlayerService {
 
     this.audioBuffer = await this.audioContext.decodeAudioData(audio);
     this._originalDuration.set(this.audioBuffer.duration);
-    this._currentTime.set(0);
+    this._originalCurrentTime.set(0);
+    this.pauseOffset = 0;
 
     this.play();
   }
@@ -129,32 +133,58 @@ export class AudioPlayerService {
     this.audioSource.playbackRate.value = this._speed();
     this.audioSource.loop = true;
 
-    const currentTime = this.currentTime();
-    this.startTime = this.audioContext.currentTime - currentTime;
-    this.audioSource.start(0, currentTime);
+    this.playStartTime = this.audioContext.currentTime;
+    this.audioSource.start(0, this.pauseOffset);
 
     this._isPlaying.set(true);
     this.audioSource.onended = () => {
       if (this._isPlaying() && !this.audioSource?.loop) this.stop();
     };
+
+    this.stopProgressLoop();
+    this.startProgressLoop();
   }
 
   pause() {
     this.audioSource?.stop();
     this._isPlaying.set(false);
+    const elapsed = (this.audioContext.currentTime - this.playStartTime) * this.speed();
+    this.pauseOffset = this.normalizeOffset(this.pauseOffset + elapsed);
+    this._originalCurrentTime.set(this.pauseOffset);
+    this.stopProgressLoop();
   }
 
   stop() {
     this.pause();
-    this._currentTime.set(0);
+    this.pauseOffset = 0;
+    this._originalCurrentTime.set(0);
+    this.stopProgressLoop();
+  }
+
+  private normalizeOffset(position: number): number {
+    if (!this.audioBuffer)
+      return position;
+    else if (this.audioBuffer.duration <= 0)
+      return 0;
+    else if (this.audioSource && this.audioSource.loop)
+      return position % this.originalDuration();
+    else
+      return Math.min(position, this.originalDuration());
   }
 
   private startProgressLoop() {
     this.ngZone.runOutsideAngular(() => {
       const tick = () => {
         if (this._isPlaying()) {
-          const currentTime = this.audioContext.currentTime - this.startTime;
-          this._currentTime.set(currentTime);
+          const duration = this.originalDuration();
+          const elapsed = (this.audioContext.currentTime - this.playStartTime) * this.speed();
+          let currentTime = this.pauseOffset + elapsed;
+
+          if (this.audioSource && this.audioSource.loop) {
+            currentTime %= duration
+          }
+
+          this._originalCurrentTime.set(Utils.clamp(currentTime, 0, duration));
           this.progressLoopRafId = requestAnimationFrame(tick);
         }
       };
@@ -180,7 +210,7 @@ export class AudioPlayerService {
 
     const offlineContext = new OfflineAudioContext(
       audioBuffer.numberOfChannels,
-      Math.ceil(audioBuffer.sampleRate * this.duration()),
+      Math.ceil(audioBuffer.sampleRate * this.estimatedDuration()),
       audioBuffer.sampleRate
     );
 

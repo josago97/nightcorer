@@ -1,9 +1,9 @@
 <div class="player">
   <div class="timebar">
-    <span>{{displayTime(player.currentTime())}}</span>
-    <input type="range" name="track" min="0" max="100" step="0.01" [ngModel]="player.percentagePlayed()"
-      (ngModelChange)="player.setPercentagePlayed($event)">
-    <span>{{displayTime(player.duration())}}</span>
+    <span>{{ player.estimatedCurrentTime() | time }}</span>
+    <input type="range" name="track" min="0" max="1" step="0.0001" [ngModel]="player.playerProgress()"
+      (ngModelChange)="player.setPlayerProgress($event)">
+    <span>{{ player.estimatedDuration() | time }}</span>
   </div>
   <div class="controls">
     <button (click)="player.playPause()">

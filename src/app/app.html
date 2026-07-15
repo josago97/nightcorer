@@ -12,27 +12,39 @@
       <app-audio-player></app-audio-player>
     </section>
 
-    <section>
-      <input type="range" name="volume" min="0" max="1" step="0.01" [ngModel]="player.volume()"
-        (ngModelChange)="player.setVolume($event)">
-      <span>Volume: {{player.volume()}}</span>
-      <br>
-
-      <input type="range" name="semitones" min="-12" max="12" step="1" [ngModel]="player.semitones()"
-        (ngModelChange)="player.setSemitones($event)">
-      <span>Semitones: {{player.semitones()}}</span>
-      <br>
-
-      <input type="range" name="tempo" min="0.25" max="3" step="0.01" [ngModel]="player.speed()"
-        (ngModelChange)="player.setSpeed($event)">
-      <span>Speed: {{player.speed()}}</span>
-      <br>
+    <section id="settings">
+      <div class="input">
+        <label>Volume</label>
+        <input type="range" name="volume" min="0" max="1" step="0.01" [ngModel]="player.volume()"
+          (ngModelChange)="player.setVolume($event)">
+        <span>{{player.volume()}}</span>
+      </div>
+      <div class="input">
+        <label>Semitones</label>
+        <input type="range" name="semitones" min="-12" max="12" step="0.05" [ngModel]="player.semitones()"
+          (ngModelChange)="player.setSemitones($event)">
+        <span>{{player.semitones()}}</span>
+      </div>
+      <div class="input">
+        <label>Speed</label>
+        <input type="range" name="tempo" min="0.25" max="3" step="0.01" [ngModel]="player.speed()"
+          (ngModelChange)="player.setSpeed($event)">
+        <span>{{player.speed()}}</span>
+      </div>
     </section>
+
+    <div>
+      Estimated duration: {{ player.estimatedDuration() | time }}
+
+      @if (durationDiference() != 0) {
+        <span>({{ durationDiference() > 0 ? '+' : '' }}{{ durationDiference() | number:'1.0-0' }}s)</span>
+        }
+    </div>
 
     <section>
       <button (click)="exportToWav()">Export wav</button>
     </section>
-  }
+    }
 
 </main>
 

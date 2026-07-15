@@ -1,14 +1,18 @@
-import { Component, output, signal } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
+import { AudioPlayerService } from '../../services/audio-player';
+import { TimePipe } from '../../pipes/time-pipe';
 
 @Component({
   selector: 'app-file-input',
-  imports: [],
+  imports: [TimePipe],
   templateUrl: './file-input.html',
   styleUrl: './file-input.css',
 })
 export class FileInput {
   private readonly FAIL_DRAG_CLASS = 'fail-drag';
   private readonly SUCCESS_DRAG_CLASS = 'success-drag';
+
+  protected readonly player = inject(AudioPlayerService);
 
   readonly file = signal<File | null>(null);
   readonly fileChanged = output<File>();

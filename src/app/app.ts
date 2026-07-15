@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { AudioPlayerService } from './services/audio-player';
 import { saveAs } from 'file-saver';
 import { FormsModule } from '@angular/forms';
@@ -6,10 +6,12 @@ import { FileInput } from "./components/file-input/file-input";
 import { AudioPlayer } from "./components/audio-player/audio-player";
 import { AudioEncoder } from './models/audio-encoder';
 import { WavEncoder } from './models/wav-encoder';
+import { TimePipe } from "./pipes/time-pipe";
+import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, FileInput, AudioPlayer],
+  imports: [FormsModule, FileInput, AudioPlayer, TimePipe, DecimalPipe],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -17,6 +19,7 @@ export class App {
   protected readonly player = inject(AudioPlayerService);
 
   readonly audioFile = signal<File | null>(null);
+  readonly durationDiference = computed(() => this.player.estimatedDuration() - this.player.originalDuration());
 
   async importAudioFile(file: File) {
     this.audioFile.set(file);
