@@ -12,31 +12,56 @@ header {
 
 h1 {
   text-align: center;
+  color: rgb(171, 0, 171);
+}
+
+h3 {
+  margin-block: 0.5em;
 }
 
 main {
   flex: 1;
   margin-inline: auto;
-  padding: 10px;
-  max-width: 500px;
+  padding-inline: 10px;
+  max-width: 600px;
   width: 100%;
 }
 
-.player {
-  margin-block: 20px;
+section {
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid darkgray;
+  border-radius: 10px;
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.5);
 }
 
-#settings {
+#player {
+  margin-bottom: 15px;
+}
+
+.file-name {
+  margin-block: 0.5em;
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+#controls {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
-.input {
+.inputs {
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+}
+
+hr {
+  height: 1px;
   width: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 footer {

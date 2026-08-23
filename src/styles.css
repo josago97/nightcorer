@@ -1,8 +1,14 @@
+:root {
+  --primary-color: #dd02ff;
+  --secondary-color: #ff02d9;
+  --accent-color: #ff02d9;
+}
+
 html, body {
   margin: 0;
   font-size: 105%;
   font-family: 'Info Story', 'Courier New', Courier, monospace;
-  background-color: #ffc9fb;
+  background-color: #ffd7fc;
 }
 
 *, ::before, ::after {

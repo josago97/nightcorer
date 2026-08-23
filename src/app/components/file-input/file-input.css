@@ -31,7 +31,7 @@ label * {
   cursor: inherit;
   background-color: var(--content-backgorund);
   border-radius: 5px;
-  border: 2px dashed #92b397;
+  border: 2px dashed var(--primary-color);
 }
 
 .title {
@@ -51,4 +51,10 @@ label * {
   display: block;
   margin-top: 8px;
   color: #777;
+}
+
+.icon {
+  margin-bottom: 0.25em;
+  font-size: 2em;
+  color: var(--primary-color);
 }

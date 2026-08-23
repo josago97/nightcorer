@@ -8,10 +8,11 @@ import { AudioEncoder } from './models/audio-encoder';
 import { WavEncoder } from './models/wav-encoder';
 import { TimePipe } from "./pipes/time-pipe";
 import { DecimalPipe } from '@angular/common';
+import { ControlInputNumber } from "./components/control-input-number/control-input-number";
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, FileInput, AudioPlayer, TimePipe, DecimalPipe],
+  imports: [FormsModule, FileInput, AudioPlayer, TimePipe, DecimalPipe, ControlInputNumber],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -21,11 +22,31 @@ export class App {
   readonly audioFile = signal<File | null>(null);
   readonly durationDiference = computed(() => this.player.estimatedDuration() - this.player.originalDuration());
 
+  get volumePercent() {
+    return Math.round(this.player.volume() * 100);
+  }
+
+  set volumePercent(value: number) {
+    this.player.setVolume(value / 100);
+  }
+
+  get speedPercent() {
+    return Math.round(this.player.speed() * 100);
+  }
+
+  set speedPercent(value: number) {
+    this.player.setSpeed(value / 100);
+  }
+
   async importAudioFile(file: File) {
     this.audioFile.set(file);
     const buffer = await file.arrayBuffer();
 
     this.player.playAudio(buffer);
+  }
+
+  exit() {
+    this.audioFile.set(null);
   }
 
   exportToWav() {

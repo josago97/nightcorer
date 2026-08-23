@@ -1,0 +1,10 @@
+<div>
+  <label>
+    <span class="name">{{ label() }}: </span>
+    <input type="number" [attr.inputmode]="isDecimal() ? 'decimal' : 'numeric'" [min]="min()" [max]="max()"
+      [step]="boxStep()" [value]="value()" (input)="setValue($any($event.target).value)" />
+    <span>{{ unit() }}</span>
+  </label>
+  <input type="range" [min]="min()" [max]="max()" [step]="sliderStep()" [value]="value()"
+    (input)="setValue(+$any($event.target).value)">
+</div>

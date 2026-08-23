@@ -3,49 +3,51 @@
 </header>
 
 <main>
-  <section>
-    <app-file-input (fileChanged)="importAudioFile($event)"></app-file-input>
-  </section>
-
-  @if (audioFile()) {
-    <section class="player">
+  @if (audioFile(); as file) {
+    <section id="player">
+      <h3><i class="fa-solid fa-headphones"></i> Player</h3>
+      <div class="file-name">{{ file.name }}</div>
       <app-audio-player></app-audio-player>
     </section>
 
-    <section id="settings">
-      <div class="input">
-        <label>Volume</label>
-        <input type="range" name="volume" min="0" max="1" step="0.01" [ngModel]="player.volume()"
-          (ngModelChange)="player.setVolume($event)">
-        <span>{{player.volume()}}</span>
-      </div>
-      <div class="input">
-        <label>Semitones</label>
-        <input type="range" name="semitones" min="-12" max="12" step="0.05" [ngModel]="player.semitones()"
-          (ngModelChange)="player.setSemitones($event)">
-        <span>{{player.semitones()}}</span>
-      </div>
-      <div class="input">
-        <label>Speed</label>
-        <input type="range" name="tempo" min="0.25" max="3" step="0.01" [ngModel]="player.speed()"
-          (ngModelChange)="player.setSpeed($event)">
-        <span>{{player.speed()}}</span>
-      </div>
-    </section>
+    <section id="controls">
+      <h3><i class="fa-solid fa-sliders"></i> Controls</h3>
+      <div class="inputs">
+        <app-control-input-number label="Volume" unit="%" [min]="0" [max]="100" [isDecimal]="false"
+          [(value)]="volumePercent"></app-control-input-number>
 
-    <div>
-      Estimated duration: {{ player.estimatedDuration() | time }}
+        <app-control-input-number label="Semitones" [min]="-12" [max]="12" [sliderStep]="0.05"
+          [value]="player.semitones()" (valueChange)="player.setSemitones($event)"></app-control-input-number>
 
-      @if (durationDiference() != 0) {
-        <span>({{ durationDiference() > 0 ? '+' : '' }}{{ durationDiference() | number:'1.0-0' }}s)</span>
-        }
-    </div>
+        <app-control-input-number label="Playback speed" unit="%" [min]="1" [max]="300" [isDecimal]="false"
+          [(value)]="speedPercent"></app-control-input-number>
 
-    <section>
+        <!--<app-control-input-number label="Reverb decay" [min]="0.01" [max]="10" [sliderStep]="0.01"
+          [value]="player.reverbDecay()" (valueChange)="player.setReverbDecay($event)"></app-control-input-number>-->
+      </div>
+
+      <hr>
+
+      <div>
+        <div>Original duration: {{ player.originalDuration() | time }}</div>
+        <div>
+          <span>Estimated duration: {{ player.estimatedDuration() | time }}</span>
+
+          @if (durationDiference() != 0) {
+            <span>({{ durationDiference() > 0 ? '+' : '' }}{{ durationDiference() | number:'1.0-0' }}s)</span>
+            }
+        </div>
+      </div>
+
       <button (click)="exportToWav()">Export wav</button>
+      <button (click)="exit()">Convert other song</button>
     </section>
+    } @else {
+      <section>
+        <h3><i class="fa-solid fa-music"></i> Upload song</h3>
+        <app-file-input (fileChanged)="importAudioFile($event)"></app-file-input>
+      </section>
     }
-
 </main>
 
 <footer>
