@@ -20,6 +20,7 @@ export class App {
   protected readonly player = inject(AudioPlayerService);
 
   readonly audioFile = signal<File | null>(null);
+  readonly isExporting = signal<boolean>(false);
   readonly durationDiference = computed(() => this.player.estimatedDuration() - this.player.originalDuration());
 
   get volumePercent() {
@@ -38,6 +39,14 @@ export class App {
     this.player.setSpeed(value / 100);
   }
 
+  get reverbPercent() {
+    return Math.round(this.player.reverb() * 100);
+  }
+
+  set reverbPercent(value: number) {
+    this.player.setReverb(value / 100);
+  }
+
   async importAudioFile(file: File) {
     this.audioFile.set(file);
     const buffer = await file.arrayBuffer();
@@ -45,7 +54,8 @@ export class App {
     this.player.playAudio(buffer);
   }
 
-  exit() {
+  convertOtherSong() {
+    this.player.stop();
     this.audioFile.set(null);
   }
 
@@ -54,16 +64,18 @@ export class App {
   }
 
   private async export(encoder: AudioEncoder) {
-    const audioFile = this.audioFile;
+    const audioFile = this.audioFile();
 
     if (!audioFile) {
       console.error('No audio file to export.');
       return;
     }
 
+    this.isExporting.set(true);
     const file = await this.player.export(encoder);
     const audioFileName = audioFile.name.substring(0, audioFile.name.lastIndexOf('.')) || audioFile.name
     const saveFileName = encoder.getFileName(`${audioFileName}_edited`)
     saveAs(file, saveFileName);
+    this.isExporting.set(false);
   }
 }

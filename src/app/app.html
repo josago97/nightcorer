@@ -13,17 +13,17 @@
     <section id="controls">
       <h3><i class="fa-solid fa-sliders"></i> Controls</h3>
       <div class="inputs">
-        <app-control-input-number label="Volume" unit="%" [min]="0" [max]="100" [isDecimal]="false"
+        <app-control-input-number label="Volume" unit="%" [min]="0" [max]="200" [isDecimal]="false"
           [(value)]="volumePercent"></app-control-input-number>
 
         <app-control-input-number label="Semitones" [min]="-12" [max]="12" [sliderStep]="0.05"
           [value]="player.semitones()" (valueChange)="player.setSemitones($event)"></app-control-input-number>
 
-        <app-control-input-number label="Playback speed" unit="%" [min]="1" [max]="300" [isDecimal]="false"
+        <app-control-input-number label="Speed" unit="%" [min]="1" [max]="300" [isDecimal]="false"
           [(value)]="speedPercent"></app-control-input-number>
 
-        <!--<app-control-input-number label="Reverb decay" [min]="0.01" [max]="10" [sliderStep]="0.01"
-          [value]="player.reverbDecay()" (valueChange)="player.setReverbDecay($event)"></app-control-input-number>-->
+        <app-control-input-number label="Reverb" unit="%" [min]="0" [max]="100" [isDecimal]="false"
+          [(value)]="reverbPercent"></app-control-input-number>
       </div>
 
       <hr>
@@ -34,13 +34,17 @@
           <span>Estimated duration: {{ player.estimatedDuration() | time }}</span>
 
           @if (durationDiference() != 0) {
-            <span>({{ durationDiference() > 0 ? '+' : '' }}{{ durationDiference() | number:'1.0-0' }}s)</span>
+            <span> ({{ durationDiference() > 0 ? '+' : '' }}{{ durationDiference() | number:'1.0-0' }}s)</span>
             }
         </div>
       </div>
 
-      <button (click)="exportToWav()">Export wav</button>
-      <button (click)="exit()">Convert other song</button>
+      @if (isExporting()) {
+        <span>Exporting...</span>
+      } @else {
+        <button (click)="exportToWav()">Export wav</button>
+      }
+      <button (click)="convertOtherSong()">Convert other song</button>
     </section>
     } @else {
       <section>

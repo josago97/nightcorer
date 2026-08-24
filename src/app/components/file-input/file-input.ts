@@ -1,10 +1,9 @@
 import { Component, inject, output, signal } from '@angular/core';
 import { AudioPlayerService } from '../../services/audio-player';
-import { TimePipe } from '../../pipes/time-pipe';
 
 @Component({
   selector: 'app-file-input',
-  imports: [TimePipe],
+  imports: [],
   templateUrl: './file-input.html',
   styleUrl: './file-input.css',
 })

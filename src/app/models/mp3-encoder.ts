@@ -1,5 +1,18 @@
 import * as lamejs from 'lamejs';
 import { AudioEncoder } from './audio-encoder';
+
+export class Mp3Encoder extends AudioEncoder {
+  private static readonly BITRATE = 320;
+
+  override get fileExtension(): string {
+    return 'mp3';
+  }
+
+  override encode(audioBuffer: AudioBuffer): Blob {
+    throw new Error('Method not implemented.');
+  }
+}
+
 /*
 export class Mp3Encoder extends BaseEncoder {
 
