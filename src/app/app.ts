@@ -9,6 +9,7 @@ import { WavEncoder } from './models/wav-encoder';
 import { TimePipe } from "./pipes/time-pipe";
 import { DecimalPipe } from '@angular/common';
 import { ControlInputNumber } from "./components/control-input-number/control-input-number";
+import { Mp3Encoder } from './models/mp3-encoder';
 
 @Component({
   selector: 'app-root',
@@ -63,6 +64,10 @@ export class App {
     this.export(new WavEncoder())
   }
 
+  exportToMp3() {
+    this.export(new Mp3Encoder())
+  }
+
   private async export(encoder: AudioEncoder) {
     const audioFile = this.audioFile();
 
@@ -71,11 +76,14 @@ export class App {
       return;
     }
 
-    this.isExporting.set(true);
-    const file = await this.player.export(encoder);
-    const audioFileName = audioFile.name.substring(0, audioFile.name.lastIndexOf('.')) || audioFile.name
-    const saveFileName = encoder.getFileName(`${audioFileName}_edited`)
-    saveAs(file, saveFileName);
-    this.isExporting.set(false);
+    try {
+      this.isExporting.set(true);
+      const file = await this.player.export(encoder);
+      const audioFileName = audioFile.name.substring(0, audioFile.name.lastIndexOf('.')) || audioFile.name
+      const saveFileName = encoder.getFileName(`${audioFileName}_edited`)
+      saveAs(file, saveFileName);
+    } finally {
+      this.isExporting.set(false);
+    }
   }
 }

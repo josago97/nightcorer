@@ -9,7 +9,7 @@
     "test": "ng test"
   },
   "private": true,
-  "packageManager": "pnpm@11.11.0+sha512.4463f65fd80ed80d69bc1d4bf163ee94f605c7380fc318bb5b2ebe15f8cd12d49c51a4d59e951b401e764d3b6ca751cbf51bc50ed7001a6bcb4935e684c34882",
+  "packageManager": "pnpm@11.24.0",
   "dependencies": {
     "@angular/common": "^22.1.2",
     "@angular/compiler": "^22.1.2",
@@ -17,6 +17,7 @@
     "@angular/forms": "^22.1.2",
     "@angular/platform-browser": "^22.1.2",
     "@angular/router": "^22.1.2",
+    "@breezystack/lamejs": "^1.2.7",
     "@soundtouchjs/audio-worklet": "^2.1.1",
     "file-saver": "^2.0.5",
     "lamejs": "^1.2.1",

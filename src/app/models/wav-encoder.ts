@@ -2,8 +2,6 @@ import { AudioEncoder } from './audio-encoder';
 
 export class WavEncoder extends AudioEncoder {
   private static readonly HEADER_LENGTH = 44;
-  private static readonly MAX_AMPLITUDE = 0x7FFF; // 32767
-  private static readonly MIN_AMPLITUDE = 0x8000; // 32768
 
   override get fileExtension(): string {
     return 'wav';
@@ -86,9 +84,9 @@ export class WavEncoder extends AudioEncoder {
 
     for (let i = 0; i < length; i++) {
       for (let channel of channels) {
-        const sample = Math.max(-1, Math.min(1, channel[i]));
-        const amplitude = sample < 0 ? WavEncoder.MIN_AMPLITUDE : WavEncoder.MAX_AMPLITUDE;
-        view.setInt16(position, sample * amplitude, true);
+        const sample = this.floatSampleToInt16(channel[i]);
+
+        view.setInt16(position, sample, true);
         position += 2;
       }
     }

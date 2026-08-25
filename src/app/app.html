@@ -39,12 +39,15 @@
         </div>
       </div>
 
-      @if (isExporting()) {
-        <span>Exporting...</span>
-      } @else {
-        <button (click)="exportToWav()">Export wav</button>
-      }
-      <button (click)="convertOtherSong()">Convert other song</button>
+      <div class="buttons">
+        @if (isExporting()) {
+          <span>Exporting...</span>
+        } @else {
+          <button (click)="exportToWav()">Export wav</button>
+          <button (click)="exportToMp3()">Export mp3</button>
+        }
+        <button (click)="convertOtherSong()">Convert other song</button>
+      </div>
     </section>
     } @else {
       <section>

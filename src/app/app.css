@@ -64,6 +64,12 @@ hr {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
+.buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
 footer {
   padding: 10px;
   border-top: 1px solid darkgray;

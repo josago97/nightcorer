@@ -1,115 +1,79 @@
-import * as lamejs from 'lamejs';
+import * as lamejs from '@breezystack/lamejs';
 import { AudioEncoder } from './audio-encoder';
 
 export class Mp3Encoder extends AudioEncoder {
-  private static readonly BITRATE = 320;
+  private static readonly BITRATE = 320; // kbps
+  // Can be anything but make it a multiple of 576 to make encoders life easier
+  private static readonly CHUNK_BLOCK_SIZE = 576 * 2;
 
   override get fileExtension(): string {
     return 'mp3';
   }
 
   override encode(audioBuffer: AudioBuffer): Blob {
-    throw new Error('Method not implemented.');
-  }
-}
+    let numberOfChannels = audioBuffer.numberOfChannels;
+    const sampleRate = audioBuffer.sampleRate;
 
-/*
-export class Mp3Encoder extends BaseEncoder {
-
-  private static readonly BITES_PER_SAMPLE = 32;
-
-  // Can be anything but make it a multiple of 576 to make encoders life easier
-  private static readonly CHUNK_BLOCK_SIZE = 576 * 2;
-
-  encodeMp3(audioBuffer: AudioBuffer, bitrate: number = 320, cb): Blob {
-    let channelsCount = audioBuffer.numberOfChannels;
-  
-    if (channelsCount !== 1 && channelsCount !== 2) {
+    if (numberOfChannels !== 1 && numberOfChannels !== 2) {
       throw new Error('Expecting mono or stereo audioBuffer');
     }
 
     // lame fails to encode stereo audio if bitrate is lower than 96.
     // in which case, we force sound to be mono (use only channel 0)
-    if (bitrate < 96) {
-      channelsCount = 1;
+    if (Mp3Encoder.BITRATE < 96) {
+      numberOfChannels = 1;
     }
 
-    const channelSamples = this.getSamples(audioBuffer, Mp3Encoder.BITES_PER_SAMPLE);
-    const mp3encoder = new lamejs.Mp3Encoder(channelsCount, audioBuffer.sampleRate, bitrate);
+    const mp3encoder = new lamejs.Mp3Encoder(numberOfChannels, sampleRate, Mp3Encoder.BITRATE);
+    const pcmSamplesByChannel = this.floatBufferTo16BitPCM(audioBuffer);
+    const mp3Data = this.encodeChannels(mp3encoder, pcmSamplesByChannel);
 
     return new Blob(mp3Data, { type: 'audio/mp3' });
   }
 
-  private encodeChunk() {
-    var mp3buf;
-    if (channels === 1) {
-      var chunk = buffers[0].subarray(blockIndex, blockIndex + BLOCK_SIZE);
-      mp3buf = mp3encoder.encodeBuffer(chunk);
-    } else {
-      var chunkL = buffers[0].subarray(blockIndex, blockIndex + BLOCK_SIZE);
-      var chunkR = buffers[1].subarray(blockIndex, blockIndex + BLOCK_SIZE);
-      var mp3buf = mp3encoder.encodeBuffer(chunkL, chunkR);
+  private floatBufferTo16BitPCM(audioBuffer: AudioBuffer): Int16Array[] {
+    const pcmSamplesByChannel: Int16Array[] = [];
+
+    for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+      const channel = audioBuffer.getChannelData(i);
+      const pcmSamples = this.floatChannelTo16BitPCM(channel);
+
+      pcmSamplesByChannel.push(pcmSamples);
     }
 
-    if (mp3buf.length > 0) {
-      mp3Data.push(mp3buf);
-    }
-
-    blockIndex += BLOCK_SIZE;
+    return pcmSamplesByChannel;
   }
 
+  private floatChannelTo16BitPCM(channel: Float32Array): Int16Array {
+    const output = new Int16Array(channel.length);
 
-  
-    var bufferLength = audioBuffer.length;
-  
-  
-    // can be anything but make it a multiple of 576 to make encoders life easier
-    var BLOCK_SIZE = 1152;
-    
-    var mp3Data = [];
-  
-    var blockIndex = 0;
-  
-    function encodeChunk() {
-      var mp3buf;
-      if (channels === 1) {
-        var chunk = buffers[0].subarray(blockIndex, blockIndex + BLOCK_SIZE);
-        mp3buf = mp3encoder.encodeBuffer(chunk);
-      } else {
-        var chunkL = buffers[0].subarray(blockIndex, blockIndex + BLOCK_SIZE);
-        var chunkR = buffers[1].subarray(blockIndex, blockIndex + BLOCK_SIZE);
-        var mp3buf = mp3encoder.encodeBuffer(chunkL, chunkR);
-      }
-  
-      if (mp3buf.length > 0) {
-        mp3Data.push(mp3buf);
-      }
-  
-      blockIndex += BLOCK_SIZE;
+    for (let i = 0; i < channel.length; i++) {
+      output[i] = this.floatSampleToInt16(channel[i]);
     }
-  
-    function update() {
-      if (blockIndex >= bufferLength) {
-        // finish writing mp3
-        var mp3buf = mp3encoder.flush();
-  
-        if (mp3buf.length > 0) {
-          mp3Data.push(mp3buf);
-        }
-  
-        return cb(new Blob(mp3Data, { type: 'audio/mp3' }));
-      }
-  
-      var start = performance.now();
-  
-      while (blockIndex < bufferLength && performance.now() - start < 15) {
-        encodeChunk();
-      }
-  
-      //onProgress && onProgress(blockIndex / bufferLength);
-      setTimeout(update, 16.7);
-    }
-  
-    update();
+
+    return output;
   }
-}*/
+
+  private encodeChannels(encoder: lamejs.Mp3Encoder, channels: Int16Array[]): Uint8Array<ArrayBuffer>[] {
+    const chuncksEncoded: Uint8Array<ArrayBuffer>[] = [];
+    const left = channels[0];
+    const right = channels.at(1);
+
+    for (let i = 0; i < channels[0].length; i += Mp3Encoder.CHUNK_BLOCK_SIZE) {
+      const leftChunk = left.subarray(i, i + Mp3Encoder.CHUNK_BLOCK_SIZE);
+      const rightChunk = right ? right.subarray(i, i + Mp3Encoder.CHUNK_BLOCK_SIZE) : undefined;
+
+      const chunckEncoded = right
+        ? encoder.encodeBuffer(leftChunk, rightChunk)
+        : encoder.encodeBuffer(leftChunk);
+
+      if (chunckEncoded.length > 0)
+        chuncksEncoded.push(new Uint8Array(chunckEncoded));
+    }
+
+    const end = encoder.flush();
+    if (end.length > 0) chuncksEncoded.push(new Uint8Array(end));
+
+    return chuncksEncoded;
+  }
+}
